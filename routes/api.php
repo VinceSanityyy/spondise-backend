@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\API\AuthenticationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +19,23 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::post('login', [AuthenticationController::class, 'login']);
+Route::post('register', [AuthenticationController::class, 'register']);
+Route::post('logout', [AuthenticationController::class, 'logout']);
+Route::get('auth/gmail/callback', [AuthenticationController::class, 'googleLogin']);
+Route::get('/login/{provider}', [AuthenticationController::class,'redirectToGoogle']);
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::get('me',[AuthenticationController::class,'getCurrentUser']);
+});
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+
+
+Route::get('/login',function(){
+    // dd('verified');
+})->name('login');
