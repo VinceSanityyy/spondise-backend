@@ -3,7 +3,8 @@
 use App\Http\Controllers\API\AuthenticationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\API\VerifyEmailController;
+// use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,9 +32,13 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::get('me',[AuthenticationController::class,'getCurrentUser']);
 });
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+// Route::get('/email/verify/{id}/{hash}', function (VerifyEmailController $request) {
+//     $request->fulfill();
+// })->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+
+Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
 
 
 Route::get('/login',function(){

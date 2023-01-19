@@ -76,7 +76,6 @@ class AuthenticationController extends Controller
 
     public function logout(Request $request){
         $accessToken = $request->bearerToken();
-        dd($accessToken);
         $token = PersonalAccessToken::findToken($accessToken);
         $token->delete();
 
@@ -101,26 +100,24 @@ class AuthenticationController extends Controller
             $user = Socialite::driver('google')->stateless()->user();
             $finduser = User::where('google_id', $user->id)->first();
             if($finduser){
-                return response()->json([
-                    'status' => 200,
-                    'data' => $finduser
-                ],200);
+                RecordLastLogin::recordLogin($finduser->id);
+                return redirect()->away(env('NUXT_URL').'/welcome?user='.$finduser->id.'&token='.$finduser->createToken('test')->plainTextToken);
+
             }else{
-                $provider = 'google';
-                $providerUser = Socialite::driver($provider)->stateless()->user();
+                $providerUser = Socialite::driver('google')->stateless()->user();
                 $user = User::create([
                     'email' => $providerUser->getEmail(),
                     'name' => $providerUser->getName(),
                     'password' => Hash::make('password'),
-                    'google_id' => $providerUser->id
+                    'google_id' => $providerUser->id,
                 ]);
-                $data =  [
-                    'token' => $user->createToken('test')->plainTextToken,
-                    'user' => $user,
-                ];
-                return response()->json($data, 200);
+                RecordLastLogin::recordLogin($user->id);
+                event(new Registered($user));
+                return redirect()->away(env('NUXT_URL').'/welcome?user='.$user->id.'&token='.$user->createToken('test')->plainTextToken);
             }
         } catch (\Throwable $th) {
+            // dd($th);
+            echo $th;
             return response()->json([
                 'status' => 500,
                 'message' => $th
