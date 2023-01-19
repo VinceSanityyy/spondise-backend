@@ -116,8 +116,7 @@ class AuthenticationController extends Controller
                 return redirect()->away(env('NUXT_URL').'/welcome?user='.$user->id.'&token='.$user->createToken('test')->plainTextToken);
             }
         } catch (\Throwable $th) {
-            // dd($th);
-            echo $th;
+            
             return response()->json([
                 'status' => 500,
                 'message' => $th
